@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Welcome to Application in Flask</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('register') }}" method="post">
+    <dl>
+      <dt>Username:
+      <dd><input type="text" name="username">
+      <dt>Password:
+      <dd><input type="password" name="password">
+      <dt>e-mail:
+      <dd><input type="text" name="email">
+      <dd><input type="submit" value="Create Student">
+    </dl>
+  </form>
+
+   <script type="text/javascript">
+
+ $(function() {
+    $("#submitBtn").click(function() {
+         $.ajax({
+            type: "GET",
+            url: $SCRIPT_ROOT + "/add",
+            contentType: "application/json; charset=utf-8",
+            /*contentType: "application/xml; charset=utf-8" */  /*this will produce an error as header is set to /sml and not json*/
+            data: { username: $('input[name="username"]').val(),
+            password: $('input[name="password"]').val(),
+            email: $('input[name="email"]').val() },
+            success: function(data) {
+                $('#res').html({% for entry in data %}
+    "<b>"{{ entry.username }}"</b>&nbsp;"  {{ entry.password }}"&nbsp;"{{ entry.email}}"<br/>"   
+    {% else %}
+    "<em>"Unbelievable.  No entries here so far"</em>"
+    {% endfor %}
+    "</ul>"
+    );
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });     
+    });
+  });
+
+
+function getOnlineList(data) {
+    var requestType = (data = null) ? "GET" : "POST";
+    $.ajax({
+        type: requestType,
+        url: "online.php",
+        data: data,
+        success: function (responce) {
+            $("#online").html(responce);
+        }
+    });
+}
+
+
+function checkSessions() {
+    $.ajax({
+        type: "GET",
+        url: "check-sessions.php",
+        success: function (responce) {
+            if (responce > lastConnectionId) {
+                lastConnectionId = responce;
+                getOnlineList(null);
+            }
+        }
+    });
+}
+
+// runs checkSessions ever 3 seconds to check for a new user
+setInterval("checkSessions", 3000);
+</script>
+
+{% endblock %}
+
+<!-- @app.before_request
+def before_request():
+    if request.path != '/':
+        if request.headers['content-type'].find('application/json'):
+            return 'Unsupported Media Type', 415 -->

@@ -1,0 +1,34 @@
+<div class="container">
+  <h2>Registered Users</h2>
+            
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Password</th>
+       
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>John</td>
+        <td>Doe</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
+
+<h3> Users Data </h3>
+
+
+	{% for item in users  %}
+		{{item.username}} |      {{item.password}}  <br/>
+	{% endfor %}
+	
+	{% endblock  %}	
+
+	cur.execute("UPDATE {} SET Times=? WHERE Name=?".format(group),
+            (times_before + 1, food))
+	

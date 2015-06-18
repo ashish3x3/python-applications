@@ -1,0 +1,793 @@
+drop table if exists students;
+create table students (
+  id integer primary key autoincrement,
+  name text not null,
+  branch text not null
+);
+
+in bash :
+sqlite3 students.db < schema.sql
+
+
+Ashish@ASHISH-PC ~/Desktop/flask-intro
+$ sqlite3 students.db
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> students.db < schema.sql
+   ...> .tables
+   ...>
+
+Ashish@ASHISH-PC ~/Desktop/flask-intro
+$ sqlite3 students.db < schema.sql
+
+Ashish@ASHISH-PC ~/Desktop/flask-intro
+$ .tables
+sh.exe": .tables: command not found
+
+Ashish@ASHISH-PC ~/Desktop/flask-intro
+$ sqlite3 students.db
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> .tables
+students  users
+sqlite>
+
+sqlite>.databases
+seq  name             file
+---  ---------------  ----------------------
+0    main             /home/sqlite/testDB.db
+
+
+sqlite>.quit
+$
+
+$sqlite3 testDB.db .dump > testDB.sql
+
+$sqlite3 testDB.db < testDB.sql
+
+sqlite>.schema COMPANY
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL
+);
+
+Ashish@ASHISH-PC ~/Desktop/flask-intro
+$ sqlite3 students.db
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> .tables
+students  users
+sqlite> .schema users
+CREATE TABLE users (
+        email text not null,
+        username text primary key not null,
+        password text null
+    );
+sqlite> .schema students
+CREATE TABLE students (
+  id integer primary key autoincrement,
+  name text not null,
+  branch text not null
+);
+sqlite>
+
+Following is an example to fetch and display all these records using SELECT statement. Here, first three commands have been used to set properly formatted output.
+
+INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)
+VALUES (1, 'Paul', 32, 'California', 20000.00 );
+
+INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)
+VALUES (2, 'Allen', 25, 'Texas', 15000.00 );
+
+
+sqlite>.header on
+sqlite>.mode column
+sqlite> SELECT * FROM users;
+
+sqlite>.width 10, 20, 10
+sqlite>SELECT * FROM COMPANY;
+
+
+===================================
+
+
+
+In flaskr.py:
+
+# all the imports
+import sqlite3
+from flask import Flask, request, session, g, redirect, url_for, \
+     abort, render_template, flash
+from contextlib import closing
+
+     # configuration
+DATABASE = '/tmp/flaskr.db'
+DEBUG = True
+SECRET_KEY = 'development key'
+USERNAME = 'admin'
+PASSWORD = 'default'
+
+Next we can create our actual application and initialize it with the config from the same file, 
+in flaskr.py:
+
+# create our little application :)
+app = Flask(__name__)
+app.config.from_object(__name__)
+
+
+
+ flaskr.py:
+
+def init_db():
+    with closing(connect_db()) as db:
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+        # start the server with the 'run()' method
+if __name__ == '__main__':
+    app.run(debug=True)
+
+    @app.before_request
+def before_request():
+    g.db = connect_db()
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+
+The view function will pass the entries as dicts to the show_entries.html template and return the rendered one:
+
+@app.route('/')
+def show_entries():
+    cur = g.db.execute('select title, text from entries order by id desc')
+    entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+    return render_template('show_entries.html', entries=entries)
+
+
+
+Add New Entry
+@app.route('/add', methods=['POST'])
+def add_entry():
+    if not session.get('logged_in'):
+        abort(401)
+    g.db.execute('insert into entries (title, text) values (?, ?)',
+                 [request.form['title'], request.form['text']])
+    g.db.commit()
+    flash('New entry was successfully posted')
+    return redirect(url_for('show_entries'))
+
+    Login and Logout
+
+    @app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != app.config['USERNAME']:
+            error = 'Invalid username'
+        elif request.form['password'] != app.config['PASSWORD']:
+            error = 'Invalid password'
+        else:
+            session['logged_in'] = True
+            flash('You were logged in')
+            return redirect(url_for('show_entries'))
+    return render_template('login.html', error=error)
+
+
+
+    Templates:
+
+    layout.html with bootsyrap:
+
+    <!doctype html>
+<title>Flaskr</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<div class=page>
+  <h1>Flaskr</h1>
+  <div class=metanav>
+  {% if not session.logged_in %}
+    <a href="{{ url_for('login') }}">log in</a>
+  {% else %}
+    <a href="{{ url_for('logout') }}">log out</a>
+  {% endif %}
+  </div>
+  {% for message in get_flashed_messages() %}
+    <div class=flash>{{ message }}</div>
+  {% endfor %}
+  {% block body %}{% endblock %}
+</div>
+
+
+show_entries.html
+
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+      <dl>
+        <dt>Title:
+        <dd><input type=text size=30 name=title>
+        <dt>Text:
+        <dd><textarea name=text rows=5 cols=40></textarea>
+        <dd><input type=submit value=Share>
+      </dl>
+    </form>
+  {% endif %}
+  <ul class=entries>
+  {% for entry in entries %}
+    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
+  {% else %}
+    <li><em>Unbelievable.  No entries here so far</em>
+  {% endfor %}
+  </ul>
+{% endblock %}
+
+
+login.html
+
+Finally the login template which basically just displays a form to allow the user to login:
+
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Login</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('login') }}" method=post>
+    <dl>
+      <dt>Username:
+      <dd><input type=text name=username>
+      <dt>Password:
+      <dd><input type=password name=password>
+      <dd><input type=submit value=Login>
+    </dl>
+  </form>
+{% endblock %}
+
+
+
+tep 7: Adding Style
+
+Now that everything else works, it’s time to add some style to the application. Just create a stylesheet called style.css in the static folder we created before:
+
+body            { font-family: sans-serif; background: #eee; }
+a, h1, h2       { color: #377ba8; }
+h1, h2          { font-family: 'Georgia', serif; margin: 0; }
+h1              { border-bottom: 2px solid #eee; }
+h2              { font-size: 1.2em; }
+
+.page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
+                  padding: 0.8em; background: white; }
+.entries        { list-style: none; margin: 0; padding: 0; }
+.entries li     { margin: 0.8em 1.2em; }
+.entries li h2  { margin-left: -1em; }
+.add-entry      { font-size: 0.9em; border-bottom: 1px solid #ccc; }
+.add-entry dl   { font-weight: bold; }
+.metanav        { text-align: right; font-size: 0.8em; padding: 0.3em;
+                  margin-bottom: 1em; background: #fafafa; }
+.flash          { background: #cee5F5; padding: 0.5em;
+                  border: 1px solid #aacbe2; }
+.error          { background: #f0d6d6; padding: 0.5em; }
+
+
+
+
+
+===========error:
+
+bad request :
+It happens when Flask try to find somrthing which is not there..for e.g you ave written type="password " in form and trying to read "pasword",so it will not match with nay and retyrn bad request..
+make sure your variable name is same in all layoutea and app.py....i.e in one it is name="branch" and in app.py you are trying to access it with name name="title"..so it wontt happen
+
+
+unable to understand:
+use both methods=['GET', 'POST'] in 
+@app.route('/add', methods=['GET', 'POST'])
+
+
+flask error “View function did not return a response”:
+
+The following does not return a response:
+
+@app.route('/hello', methods=['GET', 'POST'])
+def hello():
+    hello_world()
+
+You mean to say...
+
+@app.route('/hello', methods=['GET', 'POST'])
+def hello():
+    return hello_world()
+
+Note the addition of return in this fixed function.
+
+
+
+
+==================================
+
+@app.route("/index",methods=["GET","POST"])
+    def index():
+        return render_template("index.html")
+
+        @app.route("/signup", methods=["GET","POST"])
+    def signup():
+        return render_template("signup.html")
+@app.route("/signedup", methods=["GET","POST"])
+    def signedup():
+
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        phone = request.form.get('phone')
+
+        if not session.get("logged_in"):
+            insert_account_holder(email,username,phone,password)
+        return render_template("homepage.html",username=username) 
+
+        @app.route("/login")
+    def login():
+        return render_template("login.html")
+
+        for user in query_db('select * from users'):
+    print user['username'], 'has the id', user['user_id']
+
+    user = query_db('select username,password from users where username = ?,password=?'
+                [t_username,t_password], one=True)
+if user is None:
+    print 'No such user'
+else:
+    print the_username, 'has the id', user['user_id']
+
+============
+Deleting data from sqlite database
+
+def get_db():
+    conn =sqlite3.connect(db_path)
+    cur =conn.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS Files (name TEXT, 
+    year TEXT, subject TEXT, kind TEXT, correction INT, 
+    description TEXT, date TEXT)""")
+    return cur
+
+def query_db(query, args=(), one=False):
+    print args   
+    cur = get_db().execute(query, args)
+    rv = cur.fetchall()
+    conn.commit()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+@app.route('/admin/<year>/<matiere>/<fichier>')
+@requires_auth
+def delete(year, matiere, fichier):
+    query_db("DELETE from Files where name=?",[fichier])
+    return 'Deleted'
+
+    ====================
+
+
+    #entries = [dict(user_name=row[0], pass=row[1]) for row in cur.fetchall()]
+        
+        # else:
+        #     if username == user[username]
+        #         if password == user['password']
+        #             
+        #     else
+        #         error = 'username/password combination is wrong'     
+
+
+        =================
+
+        You'll have to interpolate the database objects separately:
+
+cur.execute("SELECT COUNT(Name) FROM {} WHERE Name=?".format(group), (food,))
+
+and
+
+cur.execute("INSERT INTO {} VALUES(?, ?)".format(group), (food, 1))
+
+and
+
+cur.execute("UPDATE {} SET Times=? WHERE Name=?".format(group),
+            (times_before + 1, food))
+
+            =================
+
+
+  user = User(query_db("SELECT * FROM Users WHERE Username=?", username, one=True)[0])
+
+  =============================
+
+  import sqlite3
+import getpass
+
+password = getpass.getpass('your password: ')
+fullname = raw_input('your fullname: ')
+username = raw_input('your user: ')
+photo = raw_input('photo url: ')
+
+conn = sqlite3.connect('users.db')
+
+
+  output = conn.execute('INSERT into users (fullname, photo) \
+                     values (?, ? )',
+                                 [fullname, photo])
+conn.commit()
+
+# get last id
+id = output.lastrowid
+conn.execute('INSERT into logins (uid,username, password) \
+                     values (?, ?, ? )',
+                                 [id,username,password])
+
+cur = conn.execute('SELECT * from logins order by uid desc')
+conn.commit()
+print cur.fetchall()
+cur.close()
+
+
+==============================
+
+import crypt
+SECRET = 'an important secret'
+hashedpassword = crypt.crypt('password',SECRET)
+
+
+def query_db(query, args=(), one=False):
+    cur = g.db().execute(query,[args[0],args[1]])
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+
+    Simple insertion and row id
+
+By WillyFrog filed in Database
+
+This function lets you abstract the insertion into the database and get it's last id. This example uses sqlite3.
+
+def insert(table, fields=(), values=()):
+    # g.db is the database connection
+    cur = g.db.cursor()
+    query = 'INSERT INTO %s (%s) VALUES (%s)' % (
+        table,
+        ', '.join(fields),
+        ', '.join(['?'] * len(values))
+    )
+    cur.execute(query, values)
+    g.db.commit()
+    id = cur.lastrowid
+    cur.close()
+    return id
+
+
+<input type="checkbox" name="extra_cheese" value="1">Extra Cheese</input>
+<input type="checkbox" name="gluten_free" value="1">Gluten Free Base</input>
+
+ <option selected="selected" value="secret">Secret Sauce</option>
+
+ <select name="sauce">
+  <option value="tomato">Tomato</option>
+  <option value="barbeque">Barbeque</option>
+  <option value="mayonnaise">Mayonnaise</option>
+  <option value="secret">Secret Sauce</option>
+</select>
+
+<input type="radio" name="topping" value="supreme">Supreme</input>
+ <input type="radio" name="topping" value="vegetarian">Vegetarian</input>
+ <input type="radio" name="topping" value="hawaiian">Hawaiian</input>
+
+
+ <textarea name="delivery" cols="50" rows="4"></textarea>
+
+ <input type="submit" value="Send my Order">
+
+ x = 3          # numbers
+a = "gorillas" # strings
+t = True       # booleans
+
+
+item_1 = "milk"
+item_2 = "cheese"
+item_3 = "bread"
+
+
+shopping_list = []
+
+When you are in the Python interpreter you can see what is inside a list by just typing the name of the list. For example:
+
+>>> shopping_list
+[]
+
+
+shopping_list.append("milk")
+shopping_list.append("cheese")
+shopping_list.append("bread")
+
+
+shopping_list.remove("milk")
+
+for item in shopping_list:
+    print(item)
+
+
+    if "milk" in shopping_list:
+    print("Delicious!")
+
+if "eggs" not in shopping_list:
+    print("Well we can't have that!")
+    shopping_list.append("eggs")                 
+
+    shopping_list = []
+shopping_list.append("cookies")
+shopping_list.remove("cookies")
+
+
+foods = {}
+
+And you can add items to the dictionary like this:
+
+foods["banana"] = "A delicious and tasty treat!"
+foods["dirt"]   = "Not delicious. Not tasty. DO NOT EAT!"
+
+
+>>> foods
+{'banana': 'A delicious and tasty treat!', 'dirt': 'Not delicious. Not tasty. DO NOT EAT!'}
+
+
+>>> foods["banana"]
+'A delicious and tasty treat!'
+
+
+>>> foods["cheese"]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+KeyError: 'cheese'
+
+
+if "cheese" in foods:
+    print("Cheese is one of the known foods!")
+    print(foods["cheese"])
+
+
+    del foods["dirt"]
+
+    ingredients = {}
+ingredients["blt sandwich"] = ["bread", "lettuce", "tomato", "bacon"]
+
+Or add dictionaries to lists:
+
+europe = []
+germany = {"name": "Germany", "population": 81000000}
+europe.append(germany)
+luxembourg = {"name": "Luxembourg", "population": 512000}
+europe.append(luxembourg)
+
+
+
+
+{% for user in users %}
+<tr>
+  <td>{{ user.uid }}</td>
+  <td>{{ user.firstname }}</td>
+  <td>{{ user.lastname }}</td>
+  <td>{{ user.email }}</td>
+</tr>
+{% endfor %}
+
+
+No unnecessary spave and comments in multiple lines as it will give indentation eror
+
+function validateEmail(email) {
+    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,50})\.([a-z]{2,5}$/i;
+    return re.test(email);
+
+
+
+    from contextlib import closing
+with closing(self.connectio.cursor()) as cur:
+
+The easiest way to deal with this is to remove the with statement and manually close the cursor.
+
+cur = self.connection.cursor() 
+cur.execute(query, parameters) 
+result = cur.fetchone() 
+cur.close() 
+return result
+
+cursor = g.db.cursor()
+cursor.execute(sql)
+user = cursor.fetchall()
+
+What to return from server side for success to ajax call in Ember.js
+
+
+while(ob_end_clean()); // make sure my output buffer is clean
+// This is your object that will be returned to the client
+$json_out = array(
+  'status' => 0 // status 0 equals failed login, 1 will mean success
+  'message' => '' // if you would like to display a message and have the server control it
+);
+if($successful_login){
+  $json_out['status'] = 1;
+}
+header('Content-Type: application/json');
+echo json_encode($json_out);
+exit;
+
+jQuery: Return data after ajax call success [duplicate]
+
+
+
+The only way to return the data from the function would be to make a synchronous call instead of an asynchronous call, but that would freeze up the browser while it's waiting for the response.
+
+You can pass in a callback function that handles the result:
+
+function testAjax(handleData) {
+  $.ajax({
+    url:"getvalue.php",  
+    success:function(data) {
+      handleData(data); 
+    }
+  });
+}
+
+Call it like this:
+
+testAjax(function(output){
+  // here you use the output
+});
+// Note: the call won't wait for the result,
+// so it will continue with the code here while waiting.
+
+
+
+returning response from an AJAX call to other function
+
+$("#edit-field-order-borispol-und").change(function () {
+    $.ajax({
+        type: 'GET',
+        url: '/ops',
+        data: {
+            'customerid': $(this).val()
+        },
+        success: function (response) {
+            var result = response.borispol;
+            alert(result + ' it works'); // cant make it to work..
+            // insert code that depends on 'result'
+            // either by copy/paste
+            // or calling it:
+            codeThatNeedsResult(result);
+        }
+    });
+});
+
+How to return AJAX response Text? [duplicate]
+
+somefunction: function(callback){
+    var result = "";
+    myAjax = new Ajax.Request(postUrl, {
+        method: 'post',
+        postBody: postData,
+        contentType: 'application/x-www-form-urlencoded',
+        onComplete: function(transport){
+            if (200 == transport.status) {
+                result = transport.responseText;
+                callback(result);
+            }
+        }
+    });
+
+}
+somefunction(function(result){
+  alert(result);
+});
+
+
+
+
+The form is submitting after the ajax request.
+
+<html>
+  <head>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script>
+      $(function () {
+
+        $('form').on('submit', function (e) {
+
+          e.preventDefault();
+
+          $.ajax({
+            type: 'post',
+            url: 'post.php',
+            data: $('form').serialize(),
+            success: function () {
+              alert('form was submitted');
+            }
+          });
+
+        });
+
+      });
+    </script>
+  </head>
+  <body>
+    <form>
+      <input name="time" value="00:00:00.00"><br>
+      <input name="date" value="0000-00-00"><br>
+      <input name="submit" type="submit" value="Submit">
+    </form>
+  </body>
+</html>
+
+
+
+
+ 2
+down vote
+accepted
+  
+
+as far as we want to send all the form input fields which have name attribute, you can do this for all forms, regardless of the field names:
+
+First Solution
+
+function submitForm(form){
+    var url = form.attr("action");
+    var formData = {};
+    $(form).find("input[name]").each(function (index, node) {
+        formData[node.name] = node.value;
+    });
+    $.post(url, formData).done(function (data) {
+        alert(data);
+    });
+}
+
+Second Solution: in this solution you can create an array of input values:
+
+function submitForm(form){
+    var url = form.attr("action");
+    var formData = $(form).serializeArray();
+    $.post(url, formData).done(function (data) {
+        alert(data);
+    });
+}
+
+
+
+
+ 383
+down vote
+accepted
+  
+
+You can use the ajaxForm/ajaxSubmit functions from Ajax Form Plugin or the jQuery serialize function.
+
+AjaxForm:
+
+$("#theForm").ajaxForm({url: 'server.php', type: 'post'})
+
+or
+
+$("#theForm").ajaxSubmit({url: 'server.php', type: 'post'})
+
+ajaxForm will send when the submit button is pressed. ajaxSubmit sends immediately.
+
+Serialize:
+
+$.get('server.php?' + $('#theForm').serialize())
+
+$.post('server.php', $('#theform').serialize())
+
+
+
+
+form with bootstarp
+
+https://scotch.io/tutorials/submitting-ajax-forms-with-jquery

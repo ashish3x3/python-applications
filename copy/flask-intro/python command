@@ -1,0 +1,73 @@
+
+
+
+
+How to activate virtualenv?
+Here is my work flow after creating a folder and cd'ing into it:
+
+$ virtualenv venv --distribute
+New python executable in venv/bin/python
+Installing distribute.........done.
+Installing pip................done.
+$ $ source venv/Scripts/activate
+(venv)
+(venv)$ python
+
+Install packages as usual, for example:
+
+$ pip install requests
+
+    If you are done working in the virtual environment for the moment, you can deactivate it:
+
+$ deactivate
+
+This puts you back to the system’s default Python interpreter with all its installed libraries.
+
+To delete a virtual environment, just delete its folder. (In this case, it would be rm -rf venv.)
+
+pip install Flask
+
+pip install virtualenv
+
+
+There are two ways to enable debugging. Either set that flag on the application object:
+
+app.debug = True
+app.run()
+
+Or pass it as a parameter to run:
+
+app.run(debug=True)
+
+Both methods have the exact same effect.
+
+
+HEAD
+    The browser tells the server to get the information, but it is only interested in the headers, not the content of the page. An application is supposed to handle that as if a GET request was received but to not deliver the actual content. In Flask you don’t have to deal with that at all, the underlying Werkzeug library handles that for you.
+
+
+    The debug flag enables or disables the interactive debugger. Never leave debug mode activated in a production system, because it will allow users to execute code on the server!
+
+    # import the Flask class from the flask module
+from flask import Flask, render_template
+
+# create the application object
+app = Flask(__name__)
+
+# use decorators to link the function to a url
+@app.route('/')
+def home():
+    return "Hello, World!"  # return a string
+
+@app.route('/welcome')
+def welcome():
+    return render_template('welcome.html')  # render a template
+
+# start the server with the 'run()' method
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+	
+

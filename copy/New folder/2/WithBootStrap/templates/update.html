@@ -1,0 +1,24 @@
+{% extends "template.html" %}
+
+{%  block content %}
+	<h1> Update </h1>
+	{% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+	
+
+	<form action="/update/request.args.get(username)" method="POST">
+		<dl>
+			<dt>UserName :
+				<dd> <input type="text" name="username" value"{{request.form.username}}">
+			<dt> Password:
+				<dd><input type="password" name="password">		
+		</dl>
+		<p> <input type="submit" value="Login">			
+	</form>
+
+	<!--{  %  for message in get_flashed_message() %}
+		<div class=flash>
+		{{message}}
+		</div>
+			{ % endfor %}  -->
+	
+	{%endblock%}		

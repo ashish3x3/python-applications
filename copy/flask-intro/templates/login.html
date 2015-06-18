@@ -1,0 +1,128 @@
+
+
+<!-- Finally the login template which basically just displays a form to allow the user to login: -->
+
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Login</h2>
+  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
+  <form  method="post">  <!-- action="{{ url_for('login') }}" -->
+    <dl>
+      <dt>Username:
+      <dd><input  id="name" type="text" name="username">
+      <dt>Password:
+      <dd><input  id="pass" type="password" name="password">
+      <dd><input id="submitBtn" type="submit" value="Login">
+    </dl>
+  </form>
+
+   <script type="text/javascript">
+
+ $(function() {
+    $("#submitBtn").click(function() {
+         $.ajax({
+            type: "GET",
+            url: $SCRIPT_ROOT + "/login",
+            contentType: "application/json; charset=utf-8",
+            /*contentType: "application/xml; charset=utf-8" */  /*this will produce an error as header is set to /sml and not json*/
+            data: { username: $('input[name="username"]').val(),
+            password: $('input[name="password"]').val() },
+            success: function(data) {
+                $('#res').html(
+                  alert("hiii");
+                  /*{% for entry in data %}
+    "<b>"{{ entry.username }}"</b>&nbsp;"  {{ entry.password }}"&nbsp;"{{ entry.email}}"<br/>"   
+    {% else %}
+    "<em>"Unbelievable.  No entries here so far"</em>"
+    {% endfor %}
+    "</ul>"
+    );*/
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });     
+    });
+  });
+
+
+function getOnlineList(data) {
+    var requestType = (data = null) ? "GET" : "POST";
+    $.ajax({
+        type: requestType,
+        url: "online.php",
+        data: data,
+        success: function (responce) {
+            $("#online").html(responce);
+        }
+    });
+}
+
+
+function checkSessions() {
+    $.ajax({
+        type: "GET",
+        url: "check-sessions.php",
+        success: function (responce) {
+            if (responce > lastConnectionId) {
+                lastConnectionId = responce;
+                getOnlineList(null);
+            }
+        }
+    });
+}
+
+// runs checkSessions ever 3 seconds to check for a new user
+setInterval("checkSessions", 3000);
+</script>
+
+
+{% endblock %}
+
+<script type="text/javascript">
+
+/*$(document).ready(function(){
+  //$("#add_err").css('display', 'none', 'important');
+   $("#login").click(function(){  
+      username=$("#name").val();
+      password=$("#pass").val();
+      $.ajax({
+       type: "POST",
+       url: "http://127.0.0.1:5000/login",
+      data: "name="+username+"&pwd="+password,
+       success: function(html){    
+      if ($.trim(data))   {
+       //$("#add_err").html("right username or password");
+       window.location="http://127.0.0.1:5000/show_entries.html";
+      }
+      else    {
+        alert("empty");
+     // $("#add_err").css('display', 'inline', 'important');
+      // $("#add_err").html("<img src='images/alert.png' />Wrong username or password");
+      }
+       },
+       beforeSend:function()
+       {
+    //  $("#add_err").css('display', 'inline', 'important');
+     // $("#add_err").html("<img src='images/ajax-loader.gif' /> Loading...")
+       }
+      });
+    return false;
+  });
+});*/
+
+
+
+
+/*$.ajax({
+  type: "POST",
+  contentType: "application/json; charset=utf-8",
+  url: "/login",
+  data: JSON.stringify({username: $(input['username'].val()), password: $(input['password'].val()}),
+  success: function (data) {
+    //console.log(data.title);
+    //console.log(data.article);
+  },
+  dataType: "json"
+});*/
+</script>

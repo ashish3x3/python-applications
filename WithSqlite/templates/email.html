@@ -1,0 +1,21 @@
+<!-- <ul>
+  {% for email in email_addresses %}
+  <li>{{ email[0] }}</li>
+  {% endfor %}
+</ul> -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cats Everywhere email addresses</title>
+  </head>
+  <body>
+    <p>Here are all the emails we have collected:</p>
+    <ul>
+      {% for emails in email%}
+      <li>{{ emails[0]}}  {{ emails[1] }}  {{ emails[2] }}</li>
+      {% endfor %}
+    </ul>
+    <p>THIS IS GONNA ROCK!</p>
+  </body>
+</html>

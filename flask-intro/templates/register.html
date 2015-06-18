@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Register</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form id="loginForm"  method="get">  <!-- action="{{ url_for('register') }}" -->
+    <!-- <div id="status" align="left" style="margin-top: 20px; width: 310px;">
+      <div id="login_response">--><!-- spanner</div> --> 
+    <dl>
+      <dt>Username:
+      <dd><input type="text" name="username">
+      <dt>Password:
+      <dd><input type="password" name="password">
+      <dt>e-mail:
+      <dd><input type="text" name="email">
+      <dd><input id="submitBtn" type="submit"  name="submit" value="Register">
+    </dl>
+  </form>
+
+
+
+
+
+    <script type="text/javascript">
+
+ $(function() {
+    $("#submitBtn").click(function() {
+         $.ajax({
+            type: "GET",
+            url: $SCRIPT_ROOT + "/register",
+            contentType: "application/json; charset=utf-8",
+            /*contentType: "application/xml; charset=utf-8" */  /*this will produce an error as header is set to /sml and not json*/
+            data: { username: $('input[name="username"]').val(),
+                    password: $('input[name="password"]').val(),
+                    email: $('input[name="email"]').val() },
+            success: function(data) {
+              alert("Hiiiii");
+                $('#res').html({% for entry in data %}
+    "<b>"{{ entry.username }}"</b>&nbsp;"  {{ entry.password }}"&nbsp;"{{ entry.email}}"<br/>"   
+    {% else %}
+    "<em>"Unbelievable.  No entries here so far"</em>"
+    {% endfor %}
+    "</ul>"
+    );
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });     
+    });
+  });
+
+
+function getOnlineList(data) {
+    var requestType = (data = null) ? "GET" : "POST";
+    $.ajax({
+        type: requestType,
+        url: "online.php",
+        data: data,
+        success: function (responce) {
+            $("#online").html(responce);
+        }
+    });
+}
+
+
+function checkSessions() {
+    $.ajax({
+        type: "GET",
+        url: "check-sessions.php",
+        success: function (responce) {
+            if (responce > lastConnectionId) {
+                lastConnectionId = responce;
+                getOnlineList(null);
+            }
+        }
+    });
+}
+
+// runs checkSessions ever 3 seconds to check for a new user
+setInterval("checkSessions", 3000);
+</script>
+
+
+
+
+
+{% endblock %}

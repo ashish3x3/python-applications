@@ -1,0 +1,88 @@
+<!doctype html>
+<title>Flaskr</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+<!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script type="text/javascript">
+  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>   
+<div class="page">
+  <h1>Assignment Application</h1>
+  <div class="metanav">
+  {% if not session.logged_in %}
+  <a href="{{ url_for('signup') }}">Register</a>
+    <a href="{{ url_for('login') }}">log in</a>
+  {% else %}
+    <a href="{{ url_for('logout') }}">log out</a>
+  {% endif %}
+  </div>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block body %} {% endblock %}
+</div>
+
+
+
+
+  <h2>Login</h2>
+  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
+  <form id="loginForm" onsubmit="return false;" >  <!-- action="{{ url_for('login') }}" -->
+    <dl>
+      <dt>Username1111:
+      <dd><input  id="name" type="text" name="username">
+      <dt>Password:
+      <dd><input  id="pass" type="password" name="password">
+      <dd><input type="button" id="submitBtn" value="Login">
+    </dl>
+  </form>
+
+
+
+ <script type="text/javascript">
+  $(function() {
+  
+    $("#submitBtn").click(function(event) {
+        event.preventDefault();
+         $.ajax({
+            type: "POST",
+            url: $SCRIPT_ROOT + "/login",
+            contentType: "application/json; charset=utf-8",
+            
+            data: JSON.stringify( { "username": $('input[name="username"]').val(), "password": $('input[name="password"]').val(),
+              } ),  
+            /*data: { username: $('input[name="username"]').val(),
+                    password: $('input[name="password"]').val(),
+                    email: $('input[name="email"]').val(),
+                   // email: $('input[name="email"]').val() */
+               //},
+            success: function(data) {
+              if(data){ // check whether response is received
+                    window.location.href  = "/home";
+                      //alert("Hiii  ");
+                }
+                    else
+                      alert("fill it again!!");
+               
+              
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });  
+    });
+
+
+
+
+  });
+</script>
+
+
+
+
+
+ 

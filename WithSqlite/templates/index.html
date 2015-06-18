@@ -1,0 +1,98 @@
+<!doctype html>
+<title>Flaskr</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+<!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<script type="text/javascript">
+  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>   
+<div class="page">
+  <h1>Assignment Application</h1>
+  <div class="metanav">
+  {% if not session.logged_in %}
+  <a href="{{ url_for('signup') }}">Register</a>
+    <a href="{{ url_for('login') }}">log in</a>
+  {% else %}
+    <a href="{{ url_for('logout') }}">log out</a>
+  {% endif %}
+  </div>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block body %} {% endblock %}
+</div>
+
+  <form id="loginForm" onsubmit="return false;"  >  <!-- action="{{ url_for('signup') }}" -->
+  		Username :	<input type="text" name="username"></input> <br/>
+  		Password : 	<input type="password" name="password"></input><br/>
+  		E-Mail   :	<input type="text" name="email"></input><br/>
+  	<input type="button" id="submitBtn" value="Signup"></input>
+  </form>
+ 
+  <p>
+  	<ul>
+      {% for emails in email%}
+      <li>{{ emails[0]}}  {{ emails[1] }}  {{ emails[2] }}</li>
+      {% endfor %}
+    </ul>
+
+  </p>
+
+  <script type="text/javascript">
+  $(function() {
+   /* $("#submitBtn").click(function() {
+         $.ajax({
+            type: "GET",
+            url: $SCRIPT_ROOT + "/echo",
+            
+            data: { echoValue: $('input[name="echoText"]').val() },
+            success: function(data) {
+                $('#echoResult').text(data.value);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });     
+    });*/
+
+
+    $("#submitBtn").click(function(event) {
+        event.preventDefault();
+         $.ajax({
+            type: "POST",
+            url: $SCRIPT_ROOT + "/signup",
+            contentType: "application/json; charset=utf-8",
+            
+            data: JSON.stringify( { "username": $('input[name="username"]').val(), "password": $('input[name="password"]').val(),
+            	"email": $('input[name="email"]').val(), } ),  
+            /*data: { username: $('input[name="username"]').val(),
+                    password: $('input[name="password"]').val(),
+                    email: $('input[name="email"]').val(),
+                   // email: $('input[name="email"]').val() */
+               //},
+            success: function(data) {
+            	if(data){ // check whether response is received
+                    window.location.href  = "/login";
+                    	//alert("Hiii  ");
+                }
+                    else
+                    	alert("fill it again!!");
+               
+              
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });     
+    });
+
+
+
+
+  });
+</script>
+  </body>
+</html>

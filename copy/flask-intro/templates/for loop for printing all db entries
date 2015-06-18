@@ -1,0 +1,13 @@
+ <!-- <span id="res">  
+    {% for entry in entries %}
+    <b>{{ entry.username }}</b>&nbsp;  {{ entry.password }}&nbsp;{{ entry.email}}<br/>
+     
+     
+    {% else %}
+    <em>Unbelievable.  No entries here so far</em>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    </span> -->
+
+    {% endblock %}

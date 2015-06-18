@@ -1,0 +1,57 @@
+<script type="text/javascript">
+
+/*$.ajax({
+  type: "POST",
+  contentType: "application/json; charset=utf-8",
+  url: "/login",
+  data: JSON.stringify({username: $(input['username'].val()), password: $(input['password'].val()}),
+  success: function (data) {
+    //console.log(data.title);
+    //console.log(data.article);
+    alert("it worked")
+  },
+  dataType: "json"
+});*/
+
+
+  /*$(function() {
+
+    $(document).ready(function() {
+    // bind the form submit event to our function
+    $("#loginForm").bind('submit', function(e) {
+        // prevent page refresh
+        e.preventDefault();
+        // post the data
+        var ajax=$.ajax({
+            type: "POST",
+             contentType: 'application/json; charset=utf-8',
+            data: $("#loginForm").serialize(),
+            url: "/login"
+        });
+        ajax.done(function(data){
+            console.log('done!')
+            window.location = data;
+        });
+        ajax.fail(function(data){
+            console.log('error!');
+        });
+    });
+});
+  });*/
+
+/*$.ajax({ 
+    type: "POST",
+    data: JSON.stringify(body), //username and password
+    dataType: "json",
+    contentType: 'application/json; charset=utf-8',
+    url: "/login",
+    success: successFunction,
+    error: errorFunction,
+    complete: completeFunction
+});
+
+var successFunction = function (data) {
+    // do something
+    window.location = data;
+};*/
+</script>

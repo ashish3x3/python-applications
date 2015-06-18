@@ -1,0 +1,92 @@
+{%extends "template.html"%}
+{%block content%}
+	<h2> Welcome ! you are Logged in !! </h2>
+	<!-- <a class="btn btn-primary " href="/logout">Logout </a> -->
+
+	<br/>
+	<br/>
+
+	<h3> <b>Create New User </b> </h3>
+
+	<form class="form-inline" action="/create" method="post">
+		<div class="form-group">
+			<label for="username">Name</label>
+			<input name="username" type="text" class="form-control" id="username" placeholder="Jane Doe">
+		</div>
+		<div class="form-group">
+			<label for="password">Password</label>
+			<input name="password" type="password" class="form-control" id="password" placeholder="Password">
+		</div>
+		<button type="submit" class="btn btn-default">Send Validation and Create</button>
+	</form>
+
+	<br/>
+	<br/>
+
+	<div class="container">
+		<h2>Registered Users</h2>
+
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Password</th>
+
+				</tr>
+			</thead>
+			<tbody>
+				{% for item in users %}
+				<tr class="del">
+					<td contenteditable="false" > {{ item.username }} </td>
+					<td contenteditable="false" > {{ item.password }} </td>
+					<td><button href="/update/item.username" class="editbtn">Edit</button></td>
+				</tr>
+			{% endfor %}
+
+			</tbody>
+		</table>
+
+		 <input id="btnHide" type="button" value="Hide Column 3" />
+
+		
+	</div>
+
+
+	<script type="text/javascript">
+
+	 $(document).ready(function () {
+
+      $('#btnHide').click(function () {
+          //$('td:nth-child(2)').hide();
+          // if your table has header(th), use this
+          $('td:nth-child(3),th:nth-child(3)').hide();
+      });
+  });
+
+
+      $(document).ready(function () {
+          $('.editbtn').click(function () {
+              var currentTD = $(this).parents('tr').find('td');
+              if ($(this).html() == 'Edit') {
+                  currentTD = $(this).parents('tr').find('td');
+                  $.each(currentTD, function () {
+                      $(this).prop('contenteditable', true)
+                  });
+              } else {
+                 $.each(currentTD, function () {
+                      $(this).prop('contenteditable', false)
+                  });
+              }
+    
+              $(this).html($(this).html() == 'Edit' ? 'Save' : 'Edit')
+    
+          });
+    
+      });
+
+</script>
+
+	{% endblock  %}		
+
+	
